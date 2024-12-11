@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=InkML Viewer
+GenericName=InkMLViewer
+Comment=From the "Programming with gtkmm 4" tutorial
+Icon=inkmlviewer
+StartupNotify=true
+Exec=@bindir@/inkmlviewer %U
+Categories=GNOME;GTK;Utility
+
