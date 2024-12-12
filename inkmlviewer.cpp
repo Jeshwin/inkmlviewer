@@ -1,6 +1,8 @@
 #include <gtkmm-4.0/gtkmm.h>
 #include "inkmlviewer.h"
+#include "myxmlparser.h"
 #include <iostream>
+#include <filesystem>
 #include <limits>
 #include <cmath>
 
@@ -29,10 +31,6 @@ void InkArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int he
             max_y = std::max(max_y, y);
         }
     }
-    std::cout << "Min X: " << min_x << '\n';
-    std::cout << "Max X: " << max_x << '\n';
-    std::cout << "Min Y: " << min_y << '\n';
-    std::cout << "Max Y: " << max_y << '\n';    
 
     // Calculate scaling and translation
     float scale_x = width / (max_x - min_x);
@@ -42,13 +40,6 @@ void InkArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int he
     // Center the drawing
     float translate_x = width / 2.0f - ((max_x - min_x) / 2.0f) * scale;
     float translate_y = height / 2.0f - ((max_y - min_y) / 2.0f) * scale;
-    std::cout << "Width: " << width << '\n';
-    std::cout << "Height: " << height << '\n';
-    std::cout << "Unscaled Width: " << max_x - min_x << '\n';
-    std::cout << "Unscaled Height: " << max_y - min_y << '\n';
-    std::cout << "Scale: " << scale << '\n';
-    std::cout << "translate_x: " << translate_x << '\n';
-    std::cout << "translate_y: " << translate_y << '\n';
 
     cr->save();
     cr->set_source_rgb(0, 0, 0);
@@ -85,6 +76,89 @@ MyWindow::MyWindow(const std::string ground_truth,
                    const std::vector<std::vector<std::tuple<float, float>>>& strokes)
 : ink_area(ground_truth, strokes) {
 	set_title("InkML Viewer");
-	set_default_size(200, 200);
+	set_default_size(500, 250);
     set_child(ink_area);
+}
+
+MyApplication::MyApplication() : Gtk::Application("org.gtkmm.inkmlviewer", Gio::Application::Flags::HANDLES_OPEN) {}
+
+Glib::RefPtr<MyApplication> MyApplication::create() {
+    return Glib::make_refptr_for_instance<MyApplication>(new MyApplication());
+}
+
+// Convert local paths from args into global ones
+std::string resolve(const std::string& input_path) {
+    try {
+        // If path is already absolute, return as-is
+        if (std::filesystem::path(input_path).is_absolute()) {
+            return input_path;
+        }
+
+        // Get current working directory
+        std::filesystem::path current_path = std::filesystem::current_path();
+
+        // Resolve the relative path
+        std::filesystem::path full_path = std::filesystem::absolute(
+            current_path / input_path
+        );
+
+        return full_path.string();
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Path resolution error: " << e.what() << std::endl;
+        return input_path;
+    }
+}
+
+MyWindow* MyApplication::create_appwindow(const std::string filepath) {
+    std::string parsed_ground_truth;
+    std::vector<std::vector<std::tuple<float, float>>> parsed_strokes;
+    try {
+        MyXMLParser parser;
+        parser.set_substitute_entities(true);
+        parser.parse_file(resolve(filepath));
+        
+        // Log parsed ground truth and stroke data
+        parsed_ground_truth = parser.get_ground_truth();
+        parsed_strokes = parser.get_strokes();
+    } catch (const std::exception& e) {
+        std::cerr << "Exception caught: " << e.what() << std::endl;
+        return nullptr;
+    }
+    MyWindow *appwindow = new MyWindow(parsed_ground_truth, parsed_strokes);
+    add_window(*appwindow);
+    // Delete the window when it is hidden.
+    appwindow->signal_hide().connect([appwindow](){ delete appwindow; });
+    return appwindow;
+}
+
+void MyApplication::on_activate() {
+    const auto data_dirs = Glib::get_system_data_dirs();
+
+    std::string filepath;
+    for (const auto& dir : data_dirs) {
+        auto candidate = Glib::build_filename(dir, "inkmlviewer", "example.inkml");
+        if (Glib::file_test(candidate, Glib::FileTest::EXISTS)) {
+            filepath = candidate;
+            break;
+        }
+    }
+    if (filepath.empty()) {
+        std::cerr << "example.inkml not found in system data directories." << std::endl;
+    }
+    auto appwindow = create_appwindow(filepath);
+    appwindow->present();
+}
+
+void MyApplication::on_open(const Gio::Application::type_vec_files& files,
+                            const Glib::ustring& /* hint */) {
+    MyWindow* appwindow = nullptr;
+    auto windows = get_windows();
+    if (windows.size() > 0) {
+        appwindow = dynamic_cast<MyWindow*>(windows[0]);
+    }
+    if (!appwindow) {
+        appwindow = create_appwindow(files[0]->get_path());
+    }
+    appwindow->present();
 }

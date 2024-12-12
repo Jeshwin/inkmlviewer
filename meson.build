@@ -21,6 +21,8 @@ exe = executable(program_name, cpp_sources,
 
 test('basic', exe)
 
+install_data('example.inkml', install_dir: join_paths(get_option('datadir'), program_name), rename: 'example.inkml')
+
 # Create desktop shortcut
 
 python3 = import('python').find_installation()

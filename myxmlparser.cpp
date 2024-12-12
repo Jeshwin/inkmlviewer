@@ -67,7 +67,7 @@ void MyXMLParser::on_characters(const xmlpp::ustring& text) {
             }
         }
         strokes.push_back(current_stroke);
-        std::cout << "Parsed trace with " << current_stroke.size() << " points\n";
+        // std::cout << "Parsed trace with " << current_stroke.size() << " points\n";
         curr_trace_id = -1; // Reset trace_id
     }
 }
