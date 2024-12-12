@@ -1,5 +1,5 @@
-#ifndef GTK_MM_WINDOW
-#define GTK_MM_WINDOW
+#ifndef _GTK_MM_WINDOW
+#define _GTK_MM_WINDOW
 
 #include <gtkmm-4.0/gtkmm.h>
 
@@ -8,4 +8,4 @@ public:
     MyWindow();
 };
 
-#endif // GTK_MM_WINDOW
+#endif // _GTK_MM_WINDOW

@@ -7,7 +7,13 @@ gtkmm_dep = dependency('gtkmm-4.0')
 xmlpp_dep = dependency('libxml++-5.0')
 
 program_name = 'inkmlviewer'
-cpp_sources = ['inkmlviewer.cpp', 'inkmlviewer.h', 'main.cpp']
+cpp_sources = [
+  'main.cpp',
+  'inkmlviewer.cpp',
+  'inkmlviewer.h',
+  'myxmlparser.h',
+  'myxmlparser.cpp',
+]
 
 exe = executable(program_name, cpp_sources,
   dependencies: [gtkmm_dep, xmlpp_dep],
