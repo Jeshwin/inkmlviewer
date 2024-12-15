@@ -10,8 +10,8 @@ program_name = 'inkmlviewer'
 cpp_sources = [
   'main.cpp',
   'inkmlviewer.cpp',
-  'inkmlviewer.h',
-  'myxmlparser.h',
+  'inkmlviewer.hpp',
+  'myxmlparser.hpp',
   'myxmlparser.cpp',
 ]
 

@@ -1,11 +1,12 @@
 #include <gtkmm-4.0/gtkmm.h>
-#include <iostream>
-#include <string>
+
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
+#include <string>
 
-#include "myxmlparser.h"
-#include "inkmlviewer.h"
+#include "inkmlviewer.hpp"
+#include "myxmlparser.hpp"
 
 int main(int argc, char* argv[]) {
     // First, check number of args
